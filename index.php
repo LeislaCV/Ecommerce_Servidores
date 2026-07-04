@@ -1,11 +1,18 @@
 <!DOCTYPE html>
 <html>
 <head>
-  <title>ECOMMERCE PHP  </title>
+    <title>ECOMMERCE PHP</title>
 </head>
 <body>
-  <?php
-    echo "<h1>Holii Mundoo</h1>";
-  ?>
+
+<?php
+require_once("dbcon.php");
+
+echo "<br>Proyecto conectado correctamente.";
+
+
+?>
+
+
 </body>
 </html>
