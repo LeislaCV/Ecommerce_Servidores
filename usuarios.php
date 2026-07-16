@@ -1,0 +1,409 @@
+<?php
+if (session_status() === PHP_SESSION_NONE) {
+    session_start();
+}
+require 'dbcon.php';
+
+$alert = isset($_SESSION['alert']) ? $_SESSION['alert'] : null;
+
+if (!empty($alert)) {
+    $title = isset($alert['title']) ? json_encode($alert['title']) : '"Notificación"';
+    $message = isset($alert['message']) ? json_encode($alert['message']) : '""';
+    $icon = isset($alert['icon']) ? json_encode($alert['icon']) : '"info"';
+
+    echo "<script>
+            document.addEventListener('DOMContentLoaded', function() {
+                Swal.fire({
+                    title: $title,
+                    " . (!empty($alert['message']) ? "text: $message," : "") . "
+                    icon: $icon,
+                    confirmButtonText: 'OK'
+                }).then((result) => {
+                    if (result.isConfirmed) {
+                        // Hacer algo si se confirma la alerta
+                    }
+                });
+            });
+        </script>";
+    unset($_SESSION['alert']);
+}
+
+if (isset($_SESSION['username'])) {
+    $username = $_SESSION['username'];
+
+    $query = "SELECT * FROM usuarios WHERE username = '$username'";
+    $result = mysqli_query($con, $query);
+
+    if (mysqli_num_rows($result) > 0) {
+        $row = mysqli_fetch_assoc($result);
+        $rolSesion = (int)$row['rol'];
+    } else {
+        $_SESSION['alert'] = [
+            'title' => 'USUARIO NO ENCONTRADO',
+            'icon' => 'error'
+        ];
+        header('Location: login.php');
+        exit();
+    }
+} else {
+    $_SESSION['alert'] = [
+        'message' => 'Para acceder debes iniciar sesión primero',
+        'title' => 'SESIÓN NO INICIADA',
+        'icon' => 'error'
+    ];
+    header('Location: login.php');
+    exit();
+}
+?>
+<!DOCTYPE html>
+<html lang="es">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta http-equiv="X-UA-Compatible" content="ie=edge">
+    <link rel="shortcut icon" type="image/x-icon" href="images/ics.ico">
+    <title>Usuarios | Mi Empresa</title>
+    
+    <!-- Tipografía bonita y suave (Quicksand) -->
+    <link href="https://fonts.googleapis.com/css2?family=Quicksand:wght@400;600;700&display=swap" rel="stylesheet">
+    
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.2.0-beta1/dist/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-0evHe/X+R7YkIZDRvuzKMRqM+OrBnVFBL6DOitfPri4tjfHxaWutUpFmBp4vmVor" crossorigin="anonymous">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css">
+    <link rel="stylesheet" type="text/css" href="https://cdn.datatables.net/1.10.25/css/jquery.dataTables.css">
+    <link rel="stylesheet" href="css/styles.css">
+    <link rel="shortcut icon" href="images/ico.ico" type="image/x-icon">
+</head>
+
+<body class="sb-nav-fixed">
+    <?php include 'sidenav.php'; ?>
+    <div id="layoutSidenav">
+        <div id="layoutSidenav_content">
+            <div class="container-fluid py-4">
+                <div class="row mb-5 mt-4">
+                    <div class="col-md-12">
+                        <div class="card custom-card">
+                            <div class="card-header">
+                                <h4 class="m-1 d-flex justify-content-between align-items-center">
+                                    <span>✨ USUARIOS</span>
+                                    <button type="button" class="btn btn-light btn-sm rounded-pill px-3" data-bs-toggle="modal" data-bs-target="#exampleModal">
+                                        <i class="bi bi-plus-lg me-1"></i> Nuevo usuario
+                                    </button>
+                                </h4>
+                            </div>
+                            <div class="card-body p-4" style="overflow-y:scroll;">
+                                <table id="miTabla" class="table table-hover" style="width: 100%;">
+                                    <thead>
+                                        <tr>
+                                            <th>#</th>
+                                            <th>Nombre</th>
+                                            <th>Correo</th>
+                                            <th>Rol</th>
+                                            <th>Acción</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        <?php
+                                        $query = "SELECT * FROM usuarios ORDER BY id DESC";
+                                        $query_run = mysqli_query($con, $query);
+                                        if (mysqli_num_rows($query_run) > 0) {
+                                            foreach ($query_run as $registro) {
+                                        ?>
+                                                <tr>
+                                                    <td class="align-middle"><?= $registro['id']; ?></td>
+                                                    <td class="align-middle"><?= $registro['nombre']; ?> <?= $registro['apellidopaterno']; ?> <?= $registro['apellidomaterno']; ?></td>
+                                                    <td class="align-middle"><?= $registro['username']; ?></td>
+                                                    <td class="align-middle">
+                                                        <?php
+                                                        if ($registro['rol'] === '1') {
+                                                            echo '<span class="badge bg-pink-custom">Administrador/a</span>';
+                                                        } else if ($registro['rol'] === '2') {
+                                                            echo '<span class="badge bg-soft-purple">Colaborador/a</span>';
+                                                        } else if ($registro['rol'] === '3') {
+                                                            echo '<span class="badge bg-soft-mint">Cliente/a</span>';
+                                                        } else {
+                                                            echo '<span class="badge bg-secondary">Error, contacte a soporte</span>';
+                                                        }
+                                                        ?>
+                                                    </td>
+                                                    <td class="align-middle">
+                                                        <?php
+                                                        // BOTÓN EDITAR
+                                                        if ($rolSesion == 1 || ($rolSesion == 2 && $registro['username'] === $username)) {
+                                                        ?>
+                                                            <a href="editarusuario.php?id=<?= $registro['id']; ?>" class="btn btn-action btn-edit m-1" title="Editar">
+                                                                <i class="bi bi-pencil-square"></i>
+                                                            </a>
+                                                        <?php
+                                                        }
+
+                                                        // BOTÓN ELIMINAR (solo rol 1 y no es el id 1)
+                                                        if ($rolSesion == 1 && $registro['id'] != 1) {
+                                                        ?>
+                                                            <form action="codeusuarios.php" method="POST" class="d-inline">
+                                                                <button type="submit" name="delete" value="<?= $registro['id']; ?>" class="btn btn-action btn-delete m-1" title="Eliminar">
+                                                                    <i class="bi bi-trash-fill"></i>
+                                                                </button>
+                                                            </form>
+                                                        <?php
+                                                        }
+                                                        ?>
+                                                    </td>
+                                                </tr>
+                                        <?php
+                                            }
+                                        } else {
+                                            echo "<tr><td colspan='5' class='text-center py-4 text-muted'>🌸 No se encontró ningún usuario 🌸</td></tr>";
+                                        }
+                                        ?>
+                                    </tbody>
+                                </table>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Modal -->
+    <div class="modal fade" id="exampleModal" tabindex="-1" aria-labelledby="exampleModalLabel" aria-hidden="true">
+        <div class="modal-dialog modal-dialog-centered">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h1 class="modal-title fs-5" id="exampleModalLabel">✨ NUEVO USUARIO</h1>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body p-4">
+                    <form action="codeusuarios.php" method="POST" class="row g-3">
+                        <div class="col-12 form-floating mb-3">
+                            <input type="text" class="form-control" name="nombre" id="nombre" placeholder="Nombre" autocomplete="off" required>
+                            <label for="nombre">Nombre</label>
+                        </div>
+
+                        <div class="col-12 col-md-6 form-floating mb-3">
+                            <input type="text" class="form-control" name="apellidopaterno" id="apellidopaterno" placeholder="Apellido paterno" autocomplete="off" required>
+                            <label for="apellidopaterno">Apellido paterno</label>
+                        </div>
+
+                        <div class="col-12 col-md-6 form-floating mb-3">
+                            <input type="text" class="form-control" name="apellidomaterno" id="apellidomaterno" placeholder="Apellido materno" autocomplete="off" required>
+                            <label for="apellidomaterno">Apellido materno</label>
+                        </div>
+
+                        <div class="col-12 form-floating mb-3">
+                            <input type="email" class="form-control" name="username" id="username" placeholder="Correo" autocomplete="off" required>
+                            <label for="username">Correo</label>
+                        </div>
+
+                        <div class="col-12 col-md-7 form-floating mb-3">
+                            <input type="password" class="form-control" name="password" id="password" placeholder="Contraseña" autocomplete="off" minlength="8" required>
+                            <label for="password">Contraseña</label>
+                        </div>
+
+                        <div class="col-12 col-md-5 form-floating mb-3">
+                            <select class="form-select" name="rol" id="rol" autocomplete="off" required>
+                                <option selected disabled>Seleccione...</option>
+                                <option value="1">Administrador</option>
+                                <option value="2">Colaborador</option>
+                            </select>
+                            <label for="rol">Rol</label>
+                        </div>
+                        
+                        <div class="col-12 mt-4 d-flex justify-content-end gap-2">
+                            <button type="button" class="btn btn-secondary rounded-pill px-4" data-bs-dismiss="modal">Cerrar</button>
+                            <button type="submit" class="btn btn-primary-custom rounded-pill px-4" name="save">Guardar 💖</button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.2.0-beta1/dist/js/bootstrap.bundle.min.js" integrity="sha384-pprn3073KE6tl6bjs2QrFaJGz5/SUsLqktiwsUTF55Jfv3qYSDhgCecCxMW52nD2" crossorigin="anonymous"></script>
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+    <script type="text/javascript" charset="utf8" src="https://cdn.datatables.net/1.10.25/js/jquery.dataTables.js"></script>
+    <script src='https://cdn.jsdelivr.net/npm/sweetalert2@10'></script>
+    <script>
+        $(document).ready(function() {
+            $('#miTabla').DataTable({
+                "order": [[0, "desc"]],
+                "language": {
+                    "url": "//cdn.datatables.net/plug-ins/1.10.25/i18n/Spanish.json"
+                }
+            });
+        });
+    </script>
+    
+    <style>
+        /* 🌸 VARIABLES DE COLORES FEMENINOS Y SUAVES 🌸 */
+        :root {
+            --primary-pink: #ff85a1;
+            --deep-pink: #ff5c8a;
+            --soft-pink: #ffd1dc;
+            --bg-color: #fff5f8;
+            --card-bg: #ffffff;
+            --text-color: #5a4a52;
+            --soft-purple: #e2d1f0;
+            --soft-mint: #d1f0e2;
+        }
+
+        body {
+            background-color: var(--bg-color);
+            background-image: linear-gradient(135deg, #fff5f8 0%, #ffeef2 100%);
+            font-family: 'Quicksand', sans-serif;
+            color: var(--text-color);
+        }
+
+        /* Tarjeta principal */
+        .custom-card {
+            border: none;
+            border-radius: 24px;
+            box-shadow: 0 10px 30px rgba(255, 133, 161, 0.15);
+            overflow: hidden;
+            background-color: var(--card-bg);
+        }
+
+        .card-header {
+            background: linear-gradient(135deg, var(--primary-pink), var(--deep-pink));
+            color: white !important;
+            padding: 1.2rem 1.5rem;
+            border-bottom: none;
+        }
+
+        .card-header h4 {
+            font-weight: 700;
+            letter-spacing: 0.5px;
+            margin: 0;
+        }
+
+        /* Tabla delicada */
+        .table {
+            border-collapse: separate;
+            border-spacing: 0 8px;
+        }
+        .table thead th {
+            background-color: var(--soft-pink);
+            color: var(--deep-pink);
+            font-weight: 700;
+            border: none;
+            padding: 14px;
+            text-transform: uppercase;
+            font-size: 0.85rem;
+            letter-spacing: 0.5px;
+        }
+        .table thead th:first-child { border-radius: 12px 0 0 12px; }
+        .table thead th:last-child { border-radius: 0 12px 12px 0; }
+        
+        .table tbody tr {
+            background-color: white;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.03);
+            transition: transform 0.2s ease, box-shadow 0.2s ease;
+        }
+        .table tbody tr:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 8px 20px rgba(255, 133, 161, 0.15);
+        }
+        .table td {
+            border: none;
+            padding: 16px;
+            font-weight: 600;
+        }
+        .table td:first-child { border-radius: 12px 0 0 12px; }
+        .table td:last-child { border-radius: 0 12px 12px 0; }
+
+        /* Badges de roles */
+        .bg-pink-custom { background-color: var(--soft-pink) !important; color: var(--deep-pink) !important; font-weight: 600; padding: 6px 12px; border-radius: 50px; }
+        .bg-soft-purple { background-color: var(--soft-purple) !important; color: #6a4c93 !important; font-weight: 600; padding: 6px 12px; border-radius: 50px; }
+        .bg-soft-mint { background-color: var(--soft-mint) !important; color: #2d6a4f !important; font-weight: 600; padding: 6px 12px; border-radius: 50px; }
+
+        /* Botones redondeados y suaves */
+        .btn {
+            border-radius: 50px;
+            font-weight: 600;
+            transition: all 0.3s ease;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.05);
+        }
+        .btn-primary-custom {
+            background: linear-gradient(135deg, var(--primary-pink), var(--deep-pink));
+            border: none;
+            color: white;
+        }
+        .btn-primary-custom:hover {
+            background: linear-gradient(135deg, var(--deep-pink), var(--primary-pink));
+            transform: translateY(-2px);
+            box-shadow: 0 6px 15px rgba(255, 92, 138, 0.3);
+            color: white;
+        }
+        .btn-action {
+            width: 36px;
+            height: 36px;
+            padding: 0;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            border-radius: 50%;
+        }
+        .btn-edit {
+            background-color: #fff0c4 !important;
+            border-color: #ffe082 !important;
+            color: #d4a017 !important;
+        }
+        .btn-edit:hover {
+            background-color: #ffe082 !important;
+            transform: translateY(-2px);
+        }
+        .btn-delete {
+            background-color: var(--soft-pink) !important;
+            border-color: var(--soft-pink) !important;
+            color: var(--deep-pink) !important;
+        }
+        .btn-delete:hover {
+            background-color: var(--deep-pink) !important;
+            color: white !important;
+            transform: translateY(-2px);
+        }
+
+        /* Modal bonito */
+        .modal-content {
+            border-radius: 24px;
+            border: none;
+            box-shadow: 0 15px 40px rgba(255, 133, 161, 0.2);
+        }
+        .modal-header {
+            background: linear-gradient(135deg, var(--soft-pink), #fff0f5);
+            border-radius: 24px 24px 0 0;
+            border-bottom: 2px solid var(--primary-pink);
+        }
+        .modal-title {
+            color: var(--deep-pink);
+            font-weight: 700;
+        }
+        .form-control, .form-select {
+            border-radius: 16px;
+            border: 2px solid #ffeef2;
+            background-color: #fffbfc;
+            font-weight: 500;
+        }
+        .form-control:focus, .form-select:focus {
+            border-color: var(--primary-pink);
+            box-shadow: 0 0 0 0.25rem rgba(255, 133, 161, 0.25);
+            background-color: white;
+        }
+
+        /* DataTables paginación */
+        .dataTables_wrapper .dataTables_paginate .paginate_button.current {
+            background: var(--primary-pink) !important;
+            color: white !important;
+            border: 1px solid var(--primary-pink) !important;
+            border-radius: 50px !important;
+        }
+        .dataTables_wrapper .dataTables_paginate .paginate_button:hover {
+            background: var(--soft-pink) !important;
+            color: var(--deep-pink) !important;
+            border: 1px solid var(--primary-pink) !important;
+            border-radius: 50px !important;
+        }
+    </style>
+</body>
+</html>

@@ -15,30 +15,14 @@ require_once("dbcon.php");
 
 <h3>Agregar Usuario</h3>
 
-<form method="POST">
-
-Nombre:<br>
-<input type="text" name="nombre" required><br><br>
-
-Apellido Paterno:<br>
-<input type="text" name="apellidopaterno" required><br><br>
-
-Apellido Materno:<br>
-<input type="text" name="apellidomaterno" required><br><br>
-
-Username:<br>
-<input type="text" name="username" required><br><br>
-
-Password:<br>
-<input type="text" name="password" required><br><br>
-
-Rol:<br>
-<input type="text" name="rol" required><br><br>
-
-Estatus:<br>
-<input type="text" name="estatus" required><br><br>
-
-Medio:<br>
+<form method="POST">Nombre:<br>
+<input type="text" name="nombre" required><br><br>Apellido Paterno:<br>
+<input type="text" name="apellidopaterno" required><br><br>Apellido Materno:<br>
+<input type="text" name="apellidomaterno" required><br><br>Username:<br>
+<input type="text" name="username" required><br><br>Password:<br>
+<input type="text" name="password" required><br><br>Rol:<br>
+<input type="text" name="rol" required><br><br>Estatus:<br>
+<input type="text" name="estatus" required><br><br>Medio:<br>
 <input type="text" name="medio" required><br><br>
 
 <button type="submit" name="guardar">Guardar</button>
@@ -166,30 +150,14 @@ if (isset($_POST['actualizar'])) {
 
 <form method="POST">
 
-<input type="hidden" name="id" value="<?php echo $u['id']; ?>">
-
-Nombre:<br>
-<input type="text" name="nombre" value="<?php echo $u['nombre']; ?>"><br><br>
-
-Apellido Paterno:<br>
-<input type="text" name="apellidopaterno" value="<?php echo $u['apellidopaterno']; ?>"><br><br>
-
-Apellido Materno:<br>
-<input type="text" name="apellidomaterno" value="<?php echo $u['apellidomaterno']; ?>"><br><br>
-
-Username:<br>
-<input type="text" name="username" value="<?php echo $u['username']; ?>"><br><br>
-
-Password:<br>
-<input type="text" name="password" value="<?php echo $u['password']; ?>"><br><br>
-
-Rol:<br>
-<input type="text" name="rol" value="<?php echo $u['rol']; ?>"><br><br>
-
-Estatus:<br>
-<input type="text" name="estatus" value="<?php echo $u['estatus']; ?>"><br><br>
-
-Medio:<br>
+<input type="hidden" name="id" value="<?php echo $u['id']; ?>">Nombre:<br>
+<input type="text" name="nombre" value="<?php echo $u['nombre']; ?>"><br><br>Apellido Paterno:<br>
+<input type="text" name="apellidopaterno" value="<?php echo $u['apellidopaterno']; ?>"><br><br>Apellido Materno:<br>
+<input type="text" name="apellidomaterno" value="<?php echo $u['apellidomaterno']; ?>"><br><br>Username:<br>
+<input type="text" name="username" value="<?php echo $u['username']; ?>"><br><br>Password:<br>
+<input type="text" name="password" value="<?php echo $u['password']; ?>"><br><br>Rol:<br>
+<input type="text" name="rol" value="<?php echo $u['rol']; ?>"><br><br>Estatus:<br>
+<input type="text" name="estatus" value="<?php echo $u['estatus']; ?>"><br><br>Medio:<br>
 <input type="text" name="medio" value="<?php echo $u['medio']; ?>"><br><br>
 
 <button type="submit" name="actualizar">Actualizar</button>

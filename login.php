@@ -8,7 +8,7 @@
 
     <h2>Iniciar Sesión</h2>
 
-    <form action="crud.php" method="POST">
+    <form action="validar.php" method="POST">
 
         <label>Usuario:</label><br>
         <input type="text" name="username" required><br><br>

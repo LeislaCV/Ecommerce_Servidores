@@ -5,11 +5,9 @@ $usuario = "root";
 $password = "";
 $bd = "ecommerce";
 
-$conn = new mysqli($host, $usuario, $password, $bd);
+$con = mysqli_connect($host, $usuario, $password, $bd);
 
-if ($conn->connect_error) {
-    die("Error de conexión: " . $conn->connect_error);
+if (!$con) {
+    die("Error de conexión: " . mysqli_connect_error());
 }
-
-echo "Conexión exitosa";
 ?>
