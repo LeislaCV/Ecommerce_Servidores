@@ -14,7 +14,7 @@ $username = $_SESSION['username'];
 
         <!-- Espacio entre el logo y el botón de salir -->
         <div class="d-flex justify-content-end w-100">
-            <a style="margin-right: 15px;" class="btn btn-warning" href="logout.php">Salir <i class="bi bi-box-arrow-right"></i></a>
+            <a style="margin-right: 15px;" class="btn btn-warning" href="index.php">Salir <i class="bi bi-box-arrow-right"></i></a>
         </div>
     </nav>
 
